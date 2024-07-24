@@ -1,7 +1,7 @@
 import {useState} from 'react'
-import ClassCounter from "./components/ClassCounter.jsx";
 import './styles/App.css'
 import PostList from "./components/PostList.jsx";
+import PostForm from "./components/PostForm.jsx";
 
 function App() {
     const [posts, setPosts] = useState(
@@ -12,10 +12,31 @@ function App() {
         ]
     )
 
+    const createPost = (newPost) => {
+      setPosts([...posts, newPost]);
+    }
+
+    const deletePost = (post) => {
+        setPosts(posts.filter(p => p.id !== post.id))
+    }
+
     return (
         <div className="App">
-            <ClassCounter/>
-            <PostList posts={posts} title='Post List'/>
+            <PostForm create={createPost} />
+            <div>
+
+                <select>
+                    <option value="title">Sort by title</option>
+                    <option value="body">Sort by description</option>
+                </select>
+            </div>
+            {posts.length !== 0
+                ?
+                <PostList posts={posts} title='Post List' deletePost={deletePost} />
+                :
+                <h1 style={{textAlign: 'center'}}>No posts!</h1>
+            }
+
         </div>
     )
 }
