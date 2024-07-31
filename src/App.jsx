@@ -1,7 +1,10 @@
-import {useState} from 'react'
+import {useMemo, useState} from 'react'
 import './styles/App.css'
 import PostList from "./components/PostList.jsx";
 import PostForm from "./components/PostForm.jsx";
+import PostFilter from "./components/PostFilter.jsx";
+import MyModal from "./components/UI/modal/MyModal.jsx";
+import MyButton from "./components/UI/button/MyButton.jsx";
 
 function App() {
     const [posts, setPosts] = useState(
@@ -12,8 +15,33 @@ function App() {
         ]
     )
 
+    const [filter, setFilter] = useState({sort: '', query: ''})
+    const [modal, setModal] = useState(false)
+
+    const options = [
+        {
+            value: 'title',
+            name: 'Sort by title'
+        },
+        {
+            value: 'body',
+            name: 'Sort by description'
+        }]
+
+    const sortedPosts = useMemo(()=>{
+        if (filter.sort) {
+            return [...posts].sort((a,b) => a[filter.sort].localeCompare(b[filter.sort]))
+        }
+        return posts
+    },[filter.sort, posts])
+
+    const sortedAndSearchedPosts = useMemo(()=>{
+        return sortedPosts.filter(post => post.title.toLowerCase().includes(filter.query.toLowerCase()))
+    }, [filter.query, sortedPosts])
+
     const createPost = (newPost) => {
-      setPosts([...posts, newPost]);
+      setPosts([...posts, newPost])
+      setModal(false)
     }
 
     const deletePost = (post) => {
@@ -22,20 +50,15 @@ function App() {
 
     return (
         <div className="App">
-            <PostForm create={createPost} />
-            <div>
+            <MyButton style={{marginTop: '30px'}} onClick={() => setModal(true)}>
+                Create new post
+            </MyButton>
+            <MyModal visible={modal} setVisible={setModal}>
+                <PostForm create={createPost} />
+            </MyModal>
 
-                <select>
-                    <option value="title">Sort by title</option>
-                    <option value="body">Sort by description</option>
-                </select>
-            </div>
-            {posts.length !== 0
-                ?
-                <PostList posts={posts} title='Post List' deletePost={deletePost} />
-                :
-                <h1 style={{textAlign: 'center'}}>No posts!</h1>
-            }
+            <PostFilter filter={filter} setFilter={setFilter} options={options}/>
+            <PostList posts={sortedAndSearchedPosts} title='Post List' deletePost={deletePost} />
 
         </div>
     )
